@@ -3,70 +3,70 @@
 > **创建日期**: 2025-12-13  
 > **预计工期**: 5-7 天
 
-## Phase 1: 项目初始化 (Day 1)
+## Phase 1: 项目初始化 (Day 1) ✅ 已完成
 
 ### 1.1 创建项目结构
 
-- [ ] 创建 `pyproject.toml`
-- [ ] 创建目录结构
-- [ ] 设置开发环境 (venv/poetry)
+- [x] 创建 `pyproject.toml`
+- [x] 创建目录结构
+- [x] 设置开发环境 (venv)
 
 ### 1.2 复制 check50 代码
 
-- [ ] 复制 `check50/_api.py` → `bootcs/check/_api.py`
-- [ ] 复制 `check50/_exceptions.py` → `bootcs/check/_exceptions.py`
-- [ ] 复制 `check50/internal.py` → `bootcs/check/internal.py`
-- [ ] 复制 `check50/runner.py` → `bootcs/check/runner.py`
-- [ ] 复制 `check50/c.py` → `bootcs/check/c.py`
-- [ ] 复制 `check50/py.py` → `bootcs/check/py.py`
-- [ ] 复制 `check50/regex.py` → `bootcs/check/regex.py`
-- [ ] 复制 `check50/renderer/` → `bootcs/check/renderer/`
-- [ ] 调整所有 import 语句
+- [x] 复制 `check50/_api.py` → `bootcs/check/_api.py`
+- [x] 复制 `check50/_exceptions.py` → `bootcs/check/_exceptions.py`
+- [x] 复制 `check50/internal.py` → `bootcs/check/internal.py`
+- [x] 复制 `check50/runner.py` → `bootcs/check/runner.py`
+- [x] 复制 `check50/c.py` → `bootcs/check/c.py`
+- [ ] 复制 `check50/py.py` → `bootcs/check/py.py` (按需添加)
+- [x] 复制 `check50/regex.py` → `bootcs/check/regex.py`
+- [ ] 复制 `check50/renderer/` → `bootcs/check/renderer/` (按需添加)
+- [x] 调整所有 import 语句
 
 ### 1.3 复制 lib50 代码
 
-- [ ] 复制 `lib50/config.py` → `bootcs/lib/config.py`
-- [ ] 复制 `lib50/_errors.py` → `bootcs/lib/_errors.py`
-- [ ] 复制 `lib50/crypto.py` → `bootcs/lib/crypto.py`
-- [ ] 调整所有 import 语句
+- [x] 复制 `lib50/config.py` → `bootcs/lib50/config.py`
+- [x] 复制 `lib50/_errors.py` → `bootcs/lib50/_errors.py`
+- [ ] 复制 `lib50/crypto.py` → `bootcs/lib50/crypto.py` (按需添加)
+- [x] 调整所有 import 语句
 
 ### 1.4 验证
 
-- [ ] `pip install -e .` 成功
-- [ ] `python -c "from bootcs.check import run, exists, Failure"` 成功
+- [x] `pip install -e .` 成功
+- [x] `python -c "from bootcs.check import run, exists, Failure"` 成功
 
 ---
 
-## Phase 2: Check 功能实现 (Day 2-3)
+## Phase 2: Check 功能实现 (Day 2-3) 🔄 进行中
 
 ### 2.1 CLI 框架
 
-- [ ] 创建 `bootcs/__main__.py` (argparse)
+- [x] 创建 `bootcs/__main__.py` (argparse)
 - [ ] 创建 `bootcs/cli/__init__.py`
-- [ ] 实现 `bootcs --version`
-- [ ] 实现 `bootcs --help`
+- [x] 实现 `bootcs --version`
+- [x] 实现 `bootcs --help`
 
 ### 2.2 check 命令
 
 - [ ] 创建 `bootcs/cli/check.py`
 - [ ] 实现 `--dev` 模式 (本地路径)
-- [ ] 实现 `--local` 模式 (本地运行)
+- [x] 实现 `--local` 模式 (本地运行)
 - [ ] 实现 `--offline` 模式
-- [ ] 实现 `--output [ansi|json|html]`
-- [ ] 实现 `--log` 显示日志
-- [ ] 实现 `--target` 运行指定检查
+- [x] 实现 `--output [ansi|json]`
+- [x] 实现 `--log` 显示日志
+- [x] 实现 `--target` 运行指定检查
 
 ### 2.3 检查脚本加载
 
-- [ ] 支持 Python 检查脚本 (`__init__.py`)
+- [x] 支持 Python 检查脚本 (`__init__.py`)
 - [ ] 支持 YAML 简单检查 (`.cs50.yaml`)
 - [ ] 支持从 GitHub 下载检查脚本
 
 ### 2.4 测试验证
 
-- [ ] 测试 `bootcs check --dev course-cs50/checks/hello`
-- [ ] 测试 `bootcs check --dev course-cs50/checks/mario-less`
-- [ ] 测试 `bootcs check --dev course-cs50/checks/cash`
+- [ ] 测试 `bootcs check --local course-cs50/checks/hello`
+- [ ] 测试 `bootcs check --local course-cs50/checks/mario-less`
+- [ ] 测试 `bootcs check --local course-cs50/checks/cash`
 - [ ] 验证与 TypeScript 版本结果一致
 
 ---
@@ -201,10 +201,10 @@
 
 ## 进度跟踪
 
-| Phase   | 状态      | 开始日期 | 完成日期 |
-| ------- | --------- | -------- | -------- |
-| Phase 1 | ⏳ 待开始 |          |          |
-| Phase 2 | ⏳ 待开始 |          |          |
-| Phase 3 | ⏳ 待开始 |          |          |
-| Phase 4 | ⏳ 待开始 |          |          |
-| Phase 5 | ⏳ 待开始 |          |          |
+| Phase   | 状态      | 开始日期   | 完成日期   |
+| ------- | --------- | ---------- | ---------- |
+| Phase 1 | ✅ 已完成 | 2025-12-13 | 2025-12-13 |
+| Phase 2 | 🔄 进行中 | 2025-12-13 |            |
+| Phase 3 | ⏳ 待开始 |            |            |
+| Phase 4 | ⏳ 待开始 |            |            |
+| Phase 5 | ⏳ 待开始 |            |            |

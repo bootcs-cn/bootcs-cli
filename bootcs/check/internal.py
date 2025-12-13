@@ -35,8 +35,8 @@ check_running = False
 #: The user specified slug used to identifies the set of checks
 slug = None
 
-#: Config loader for bootcs/check50
-CONFIG_LOADER = lib50.config.Loader("check50")
+#: Config loader for bootcs
+CONFIG_LOADER = lib50.config.Loader("bootcs")
 CONFIG_LOADER.scope("files", "include", "exclude", "require")
 
 
