@@ -18,6 +18,8 @@ BootCS 命令行工具 - 用于代码检查和提交
 
 ## 安装
 
+### 方式一：Python 安装
+
 ```bash
 # 开发模式安装
 git clone https://github.com/bootcs-cn/bootcs-cli.git
@@ -25,6 +27,16 @@ cd bootcs-cli
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
+```
+
+### 方式二：Docker 镜像
+
+```bash
+# 拉取基础镜像
+docker pull ghcr.io/bootcs-cn/bootcs-cli:latest
+
+# 拉取包含 CS50 检查脚本的镜像
+docker pull ghcr.io/bootcs-cn/bootcs-cli:cs50
 ```
 
 ## 快速开始
@@ -101,6 +113,71 @@ bootcs logout
 | `--local PATH`      | 指定本地检查脚本目录 (用于获取文件列表) |
 | `-m, --message MSG` | 自定义提交消息                          |
 | `-y, --yes`         | 跳过确认提示                            |
+
+## Docker 使用
+
+### 本地自测
+
+使用 Docker 镜像可以在本地快速进行代码检查，无需安装 Python 环境：
+
+```bash
+# 使用基础镜像检查代码
+docker run --rm -v $(pwd):/workspace -v /path/to/checks:/checks \
+  ghcr.io/bootcs-cn/bootcs-cli:latest \
+  check course-cs50/hello --local /checks/hello
+
+# 使用课程专用镜像（已包含检查脚本）
+docker run --rm -v $(pwd):/workspace \
+  ghcr.io/bootcs-cn/bootcs-cli:cs50 \
+  check course-cs50/hello --local /checks/hello
+```
+
+### GitHub Actions 评测
+
+在 GitHub Actions 中使用 Docker 镜像进行自动评测：
+
+```yaml
+# .github/workflows/evaluate.yml
+name: Evaluate
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/bootcs-cn/bootcs-cli:cs50
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run check
+        run: |
+          bootcs check course-cs50/hello --local /checks/hello --output json > result.json
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: result
+          path: result.json
+```
+
+### 使用评测脚本
+
+镜像中包含 `bootcs-evaluate.sh` 脚本，用于标准化评测：
+
+```bash
+# 脚本用法
+bootcs-evaluate.sh <slug> <checks_path> <student_code_path>
+
+# 示例
+docker run --rm \
+  -v $(pwd):/workspace \
+  -v /path/to/output:/output \
+  ghcr.io/bootcs-cn/bootcs-cli:cs50 \
+  bootcs-evaluate.sh course-cs50/hello /checks/hello /workspace
+
+# 结果输出到 /output/result.json
+```
 
 ## 开发
 
