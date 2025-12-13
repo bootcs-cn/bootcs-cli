@@ -1,0 +1,3 @@
+"""
+bootcs-cli tests
+"""
