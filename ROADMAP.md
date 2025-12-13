@@ -99,35 +99,35 @@
 
 ---
 
-## Phase 4: Submit 功能实现 (Day 5-6)
+## Phase 4: Submit 功能实现 (Day 5-6) ✅ 已完成
 
 ### 4.1 API 客户端
 
-- [ ] 创建 `bootcs/api/client.py`
-- [ ] 实现 HTTP 客户端 (requests)
-- [ ] 实现认证 header 注入
-- [ ] 实现错误处理
+- [x] 创建 `bootcs/api/client.py`
+- [x] 实现 HTTP 客户端 (requests)
+- [x] 实现认证 header 注入
+- [x] 实现错误处理
 
 ### 4.2 提交逻辑
 
-- [ ] 创建 `bootcs/api/submit.py`
-- [ ] 实现文件收集 (基于 .bootcs.yaml)
-- [ ] 实现 Base64 编码
-- [ ] 实现 `POST /api/submit`
-- [ ] 实现轮询 `GET /api/submissions/:id`
+- [x] 创建 `bootcs/api/submit.py`
+- [x] 实现文件收集 (基于 .bootcs.yaml)
+- [x] 实现 Base64 编码
+- [x] 实现 `POST /api/submit`
+- [ ] 实现轮询 `GET /api/submissions/:id` (API 端点待实现)
 
 ### 4.3 CLI 命令
 
-- [ ] 创建 `bootcs/cli/submit.py`
-- [ ] 实现文件预览和确认
-- [ ] 实现进度显示
-- [ ] 实现结果展示
+- [x] 实现 `bootcs submit` 命令
+- [x] 实现文件预览和确认
+- [x] 实现进度显示
+- [x] 实现结果展示
 
 ### 4.4 测试验证
 
-- [ ] 与 bootcs-api 集成测试
+- [x] CLI 命令测试
+- [ ] 与 bootcs-api 集成测试 (需要登录)
 - [ ] 完整提交流程测试
-- [ ] 错误处理测试
 
 ---
 

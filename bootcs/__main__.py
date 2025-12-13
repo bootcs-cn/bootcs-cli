@@ -42,7 +42,10 @@ def main():
     
     # Submit command
     submit_parser = subparsers.add_parser("submit", help="Submit your code")
-    submit_parser.add_argument("slug", help="The submission slug")
+    submit_parser.add_argument("slug", help="The submission slug (e.g., course-cs50/hello)")
+    submit_parser.add_argument("-m", "--message", help="Commit message")
+    submit_parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
+    submit_parser.add_argument("--local", metavar="PATH", help="Path to local checks directory (for file list)")
     
     # Auth commands
     subparsers.add_parser("login", help="Log in with GitHub")
@@ -238,8 +241,118 @@ def find_check_dir(slug):
 
 def run_submit(args):
     """Run the submit command."""
-    termcolor.cprint("Submit command not yet implemented", "yellow")
-    return 1
+    from .auth import is_logged_in, get_token
+    from .api import APIError
+    from .api.submit import collect_files, submit_files, SubmitFile
+    
+    slug = args.slug
+    
+    # Check if logged in
+    if not is_logged_in():
+        termcolor.cprint("❌ Not logged in.", "red")
+        print("Use 'bootcs login' to log in with GitHub first.")
+        return 1
+    
+    token = get_token()
+    
+    # Determine check directory for file list
+    if args.local:
+        check_dir = Path(args.local).resolve()
+    else:
+        check_dir = find_check_dir(slug)
+    
+    if not check_dir or not check_dir.exists():
+        termcolor.cprint(f"Error: Could not find config for '{slug}'", "red", file=sys.stderr)
+        termcolor.cprint("Use --local to specify the checks directory.", "yellow", file=sys.stderr)
+        return 1
+    
+    # Load config to get file list
+    try:
+        config = internal.load_config(check_dir)
+    except lib50.Error as e:
+        termcolor.cprint(f"Error: {e}", "red", file=sys.stderr)
+        return 1
+    
+    # Get list of files to include
+    cwd = Path.cwd()
+    try:
+        included, excluded = lib50.files(config.get("files", []), root=cwd)
+    except lib50.Error as e:
+        termcolor.cprint(f"Error: {e}", "red", file=sys.stderr)
+        return 1
+    
+    if not included:
+        termcolor.cprint("❌ No files found to submit.", "red")
+        return 1
+    
+    file_list = sorted(included)
+    
+    # Show files to submit
+    print()
+    termcolor.cprint(f"📦 Submitting {slug}", "cyan", attrs=["bold"])
+    print()
+    termcolor.cprint("Files to submit:", "white")
+    for f in file_list:
+        print(f"  • {f}")
+    print()
+    
+    # Confirm unless -y flag
+    if not args.yes:
+        try:
+            confirm = input("Submit these files? [Y/n] ").strip().lower()
+            if confirm and confirm not in ("y", "yes"):
+                termcolor.cprint("Submission cancelled.", "yellow")
+                return 0
+        except KeyboardInterrupt:
+            print()
+            termcolor.cprint("Submission cancelled.", "yellow")
+            return 0
+    
+    # Collect and encode files
+    try:
+        files = collect_files(file_list, root=cwd)
+    except ValueError as e:
+        termcolor.cprint(f"❌ Error: {e}", "red")
+        return 1
+    
+    # Submit
+    print("Submitting...", end="", flush=True)
+    try:
+        result = submit_files(
+            slug=slug,
+            files=files,
+            token=token,
+            message=args.message,
+        )
+        print()
+        print()
+        
+        if result.status == "ERROR":
+            termcolor.cprint(f"⚠️  {result.message or 'Submission saved but evaluation failed'}", "yellow")
+        else:
+            termcolor.cprint("✅ Submitted successfully!", "green", attrs=["bold"])
+        
+        print(f"   Submission ID: {result.submission_id}")
+        print(f"   Short Hash:    {result.short_hash}")
+        print(f"   Status:        {result.status}")
+        
+        if result.status == "EVALUATING":
+            print()
+            termcolor.cprint("💡 Your code is being evaluated. Check results at:", "cyan")
+            print(f"   https://bootcs.cn/submissions/{result.submission_id}")
+        
+        return 0
+        
+    except APIError as e:
+        print()
+        termcolor.cprint(f"❌ Submission failed: {e.message}", "red")
+        if e.code == "UNAUTHORIZED":
+            print("Try 'bootcs logout' then 'bootcs login' to refresh your session.")
+        return 1
+    except Exception as e:
+        print()
+        termcolor.cprint(f"❌ Unexpected error: {e}", "red")
+        return 1
 
 
 def run_login(args):
