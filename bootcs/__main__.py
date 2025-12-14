@@ -222,16 +222,23 @@ def output_json(results, show_log=False):
 
 def find_check_dir(slug):
     """Find the check directory for a given slug."""
+    # Extract stage name from slug (e.g., "cs50/credit" -> "credit")
+    stage_name = slug.split("/")[-1] if "/" in slug else slug
+    
     # Common locations to search
     search_paths = [
         Path.cwd() / "checks" / slug,
+        Path.cwd() / "checks" / stage_name,
         Path.cwd().parent / "checks" / slug,
+        Path.cwd().parent / "checks" / stage_name,
         Path.home() / ".local" / "share" / "bootcs" / slug,
     ]
     
-    # Also check environment variable
+    # Also check environment variable (try both full slug and stage name)
     if "BOOTCS_CHECKS_PATH" in os.environ:
-        search_paths.insert(0, Path(os.environ["BOOTCS_CHECKS_PATH"]) / slug)
+        checks_path = Path(os.environ["BOOTCS_CHECKS_PATH"])
+        search_paths.insert(0, checks_path / stage_name)
+        search_paths.insert(0, checks_path / slug)
     
     for path in search_paths:
         if path.exists():
