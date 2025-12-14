@@ -39,7 +39,10 @@ class TestAPIClient(unittest.TestCase):
         """Test successful POST request."""
         mock_response = MagicMock()
         mock_response.ok = True
-        mock_response.json.return_value = {"submissionId": "123", "status": "EVALUATING"}
+        mock_response.json.return_value = {
+            "success": True,
+            "data": {"submissionId": "123", "status": "EVALUATING"}
+        }
         mock_post.return_value = mock_response
         
         client = APIClient(token="token")

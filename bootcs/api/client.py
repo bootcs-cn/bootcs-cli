@@ -72,7 +72,7 @@ class APIClient:
             response: The HTTP response.
         
         Returns:
-            Parsed JSON response data.
+            Parsed JSON response data (unwrapped from { success, data } envelope).
         
         Raises:
             APIError: If the response indicates an error.
@@ -94,6 +94,11 @@ class APIClient:
                 message=error.get("message", "Unknown error"),
                 status_code=response.status_code
             )
+        
+        # API returns { success: true, data: {...} } format
+        # Unwrap and return just the data portion for convenience
+        if "data" in data:
+            return data["data"]
         
         return data
     

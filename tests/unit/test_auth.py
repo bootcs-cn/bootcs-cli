@@ -96,11 +96,14 @@ class TestDeviceFlow(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.ok = True
         mock_response.json.return_value = {
-            "deviceCode": "abc123",
-            "userCode": "ABCD-1234",
-            "verificationUri": "https://github.com/login/device",
-            "expiresIn": 900,
-            "interval": 5,
+            "success": True,
+            "data": {
+                "deviceCode": "abc123",
+                "userCode": "ABCD-1234",
+                "verificationUri": "https://github.com/login/device",
+                "expiresIn": 900,
+                "interval": 5,
+            }
         }
         mock_post.return_value = mock_response
         

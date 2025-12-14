@@ -73,13 +73,16 @@ def start_device_flow() -> DeviceCodeResponse:
                 message=error.get("message", "Failed to start device flow")
             )
         
-        # API returns data directly (not wrapped in success/data)
+        # API returns { success: true, data: {...} } format
+        # Unwrap the data portion
+        payload = data.get("data", data)
+        
         return DeviceCodeResponse(
-            device_code=data["deviceCode"],
-            user_code=data["userCode"],
-            verification_uri=data["verificationUri"],
-            expires_in=data["expiresIn"],
-            interval=data.get("interval", 5),
+            device_code=payload["deviceCode"],
+            user_code=payload["userCode"],
+            verification_uri=payload["verificationUri"],
+            expires_in=payload["expiresIn"],
+            interval=payload.get("interval", 5),
         )
     except requests.RequestException as e:
         raise DeviceFlowError(
@@ -153,12 +156,15 @@ def poll_for_token(
                         message=error.get("message", "Authentication failed")
                     )
             
-            if response.ok and "token" in data:
-                # Success! API returns data directly
-                return TokenResponse(
-                    token=data["token"],
-                    user=data.get("user", {})
-                )
+            if response.ok:
+                # Success! API returns { success: true, data: {...} } format
+                # Check for data.token or direct token field
+                payload = data.get("data", data)
+                if "token" in payload:
+                    return TokenResponse(
+                        token=payload["token"],
+                        user=payload.get("user", {})
+                    )
                 
         except requests.RequestException as e:
             # Network error, retry
