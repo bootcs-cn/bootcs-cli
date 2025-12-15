@@ -38,8 +38,8 @@ def main():
     check_parser.add_argument("--log", action="store_true", help="Show detailed log")
     check_parser.add_argument("--target", action="append", metavar="check",
                               help="Run only the specified check(s)")
-    check_parser.add_argument("-L", "--language", default="c",
-                              help="Language for checks (default: c)")
+    check_parser.add_argument("-L", "--language",
+                              help="Language for checks (auto-detected from files if not specified)")
     check_parser.add_argument("-u", "--update", action="store_true",
                               help="Force update checks from remote")
     check_parser.add_argument("--local", metavar="PATH", help="Path to local checks directory")
@@ -85,11 +85,75 @@ def main():
         return 1
 
 
+# Language extension mapping
+LANGUAGE_EXTENSIONS = {
+    '.c': 'c',
+    '.h': 'c',
+    '.py': 'python',
+    '.js': 'javascript',
+    '.mjs': 'javascript',
+    '.ts': 'typescript',
+    '.go': 'go',
+    '.rs': 'rust',
+    '.java': 'java',
+    '.cpp': 'cpp',
+    '.cc': 'cpp',
+    '.cxx': 'cpp',
+}
+
+
+def detect_language(directory: Path = None, explicit: str = None) -> str:
+    """
+    Detect programming language from files in directory.
+    
+    Priority:
+    1. Explicit parameter (user specified -L)
+    2. Files in current directory
+    3. Default to 'c'
+    
+    Args:
+        directory: Directory to scan for files (defaults to cwd)
+        explicit: Explicitly specified language (highest priority)
+    
+    Returns:
+        Detected language string (e.g., 'c', 'python')
+    """
+    # 1. User explicitly specified
+    if explicit:
+        return explicit
+    
+    # 2. Detect from files in directory
+    if directory is None:
+        directory = Path.cwd()
+    
+    # Count files by language
+    lang_counts = {}
+    try:
+        for item in directory.iterdir():
+            if item.is_file() and not item.name.startswith('.'):
+                ext = item.suffix.lower()
+                if ext in LANGUAGE_EXTENSIONS:
+                    lang = LANGUAGE_EXTENSIONS[ext]
+                    lang_counts[lang] = lang_counts.get(lang, 0) + 1
+    except OSError:
+        pass
+    
+    # Return the most common language
+    if lang_counts:
+        return max(lang_counts, key=lang_counts.get)
+    
+    # 3. Default
+    return 'c'
+
+
 def run_check(args):
     """Run the check command."""
     slug = args.slug
-    language = getattr(args, 'language', 'c') or 'c'
     force_update = getattr(args, 'update', False)
+    
+    # Auto-detect language from files in current directory
+    explicit_lang = getattr(args, 'language', None)
+    language = detect_language(directory=Path.cwd(), explicit=explicit_lang)
     
     # Determine check directory
     if args.local:
@@ -133,7 +197,8 @@ def run_check(args):
     # Print header (skip in JSON mode for clean output)
     if args.output != "json":
         print()
-        termcolor.cprint(f"🔍 Running checks for {slug}...", "cyan", attrs=["bold"])
+        lang_indicator = f" ({language})" if language != 'c' else ""
+        termcolor.cprint(f"🔍 Running checks for {slug}{lang_indicator}...", "cyan", attrs=["bold"])
         print()
     
     # Run checks
@@ -304,7 +369,10 @@ def run_submit(args):
     from .api.submit import collect_files, submit_files, SubmitFile
     
     slug = args.slug
-    language = getattr(args, 'language', None)  # Optional, will be auto-detected if not provided
+    
+    # Auto-detect language from files in current directory
+    explicit_lang = getattr(args, 'language', None)
+    language = detect_language(directory=Path.cwd(), explicit=explicit_lang)
     
     # Check if logged in
     if not is_logged_in():
@@ -315,12 +383,10 @@ def run_submit(args):
     token = get_token()
     
     # Determine check directory for file list
-    # Use provided language or default to 'c' for finding checks
-    check_language = language or 'c'
     if args.local:
         check_dir = Path(args.local).resolve()
     else:
-        check_dir = find_check_dir(slug, language=check_language)
+        check_dir = find_check_dir(slug, language=language)
     
     if not check_dir or not check_dir.exists():
         termcolor.cprint(f"Error: Could not find config for '{slug}'", "red", file=sys.stderr)
@@ -350,7 +416,8 @@ def run_submit(args):
     
     # Show files to submit
     print()
-    termcolor.cprint(f"📦 Submitting {slug}", "cyan", attrs=["bold"])
+    lang_indicator = f" ({language})" if language != 'c' else ""
+    termcolor.cprint(f"📦 Submitting {slug}{lang_indicator}", "cyan", attrs=["bold"])
     print()
     termcolor.cprint("Files to submit:", "white")
     for f in file_list:
