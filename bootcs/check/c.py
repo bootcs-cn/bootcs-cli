@@ -5,6 +5,8 @@ Based on check50 by CS50 (https://github.com/cs50/check50)
 Licensed under GPL-3.0
 """
 
+import os
+import platform
 import re
 import tempfile
 from pathlib import Path
@@ -24,6 +26,24 @@ CC = "clang"
 
 #: Default CFLAGS for compile()
 CFLAGS = {"std": "c11", "ggdb": True, "lm": True}
+
+#: Library paths to search for static/dynamic libraries
+LIB_PATHS = ["/usr/local/lib", "/opt/homebrew/lib"]
+
+#: Static libraries to prefer (avoids runtime dynamic library issues)
+#: Format: flag_name -> static_library_filename
+STATIC_LIBS = {
+    "lcs50": "libcs50.a",
+}
+
+
+def _find_static_lib(lib_name):
+    """Find static library file path, return None if not found."""
+    for lib_path in LIB_PATHS:
+        static_path = os.path.join(lib_path, lib_name)
+        if os.path.isfile(static_path):
+            return static_path
+    return None
 
 
 def compile(*files, exe_name=None, cc=CC, max_log_lines=50, **cflags):
@@ -53,7 +73,37 @@ def compile(*files, exe_name=None, cc=CC, max_log_lines=50, **cflags):
 
     out_flag = f" -o {exe_name} " if exe_name is not None else " "
 
-    process = run(f"{cc} {files_str}{out_flag}{flags}")
+    # Check for static libraries to use instead of dynamic ones
+    # This avoids runtime library loading issues on different systems
+    static_lib_flags = ""
+    remaining_flags = []
+    
+    for flag, value in list(flags.items()) if isinstance(flags, dict) else []:
+        pass  # flags is already a string at this point
+    
+    # Parse flags string and replace -lXXX with static library paths where available
+    flag_parts = flags.split()
+    final_flags = []
+    for part in flag_parts:
+        if part.startswith("-l"):
+            lib_flag = part[1:]  # e.g., "lcs50"
+            if lib_flag in STATIC_LIBS:
+                static_lib = _find_static_lib(STATIC_LIBS[lib_flag])
+                if static_lib:
+                    static_lib_flags += f" {static_lib}"
+                    continue  # Skip this flag, use static lib instead
+        final_flags.append(part)
+    
+    flags = " ".join(final_flags)
+
+    # Add library paths for any remaining dynamic libraries
+    lib_flags = ""
+    for lib_path in LIB_PATHS:
+        if os.path.isdir(lib_path):
+            lib_flags += f" -L{lib_path}"
+            break  # Use first available path
+
+    process = run(f"{cc} {files_str}{out_flag}{flags}{lib_flags}{static_lib_flags}")
 
     # Strip out ANSI codes
     stdout = re.sub(r"\x1B\[[0-?]*[ -/]*[@-~]", "",  process.stdout())
