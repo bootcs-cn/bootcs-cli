@@ -1,0 +1,103 @@
+# 构建 bootcs-cli 学员开发环境镜像
+#
+# 黄金镜像：包含所有支持的语言 (C, Python, Java)
+# 学员只需使用一个镜像，无需选择
+#
+# 镜像标签:
+#   - ghcr.io/bootcs-cn/cli:latest (推荐)
+#   - ghcr.io/bootcs-cn/cli:v2.0.0 (版本号)
+
+name: Build CLI Image
+
+on:
+    workflow_dispatch:
+        inputs:
+            push:
+                description: "Push image to registry"
+                required: false
+                default: true
+                type: boolean
+
+    push:
+        branches: [main]
+        paths:
+            - "docker/**"
+            - "pyproject.toml"
+            - ".github/workflows/build-cli-image.yml"
+
+    release:
+        types: [published]
+
+env:
+    REGISTRY: ghcr.io
+    IMAGE_NAME: bootcs-cn/cli
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Log in to Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Extract version from pyproject.toml
+              id: version
+              run: |
+                  VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "📦 Version: $VERSION"
+
+            - name: Extract metadata
+              id: meta
+              uses: docker/metadata-action@v5
+              with:
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+                  tags: |
+                      # latest 标签
+                      type=raw,value=latest,enable={{is_default_branch}}
+                      # 版本标签 (从 pyproject.toml)
+                      type=raw,value=v${{ steps.version.outputs.version }}
+                      # Git SHA 标签
+                      type=sha,prefix=
+
+            - name: Build and push image
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./docker
+                  file: ./docker/Dockerfile
+                  push: ${{ inputs.push != false }}
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - name: Image summary
+              run: |
+                  echo "## 🐳 CLI Image Built" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "**Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "**Supported Languages:** C, Python, Java" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Quick Start" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+                  echo "# 本地评测" >> $GITHUB_STEP_SUMMARY
+                  echo "docker run --rm -v \$(pwd):/workspace ghcr.io/bootcs-cn/cli check cs50/hello" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "# 提交代码" >> $GITHUB_STEP_SUMMARY
+                  echo "docker run --rm -v \$(pwd):/workspace ghcr.io/bootcs-cn/cli submit cs50/hello" >> $GITHUB_STEP_SUMMARY
+                  echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
