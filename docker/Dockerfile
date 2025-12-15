@@ -4,8 +4,8 @@
 # 与评测环境一致，避免"本地通过、线上失败"问题
 #
 # 使用方式:
-#   docker run --rm -v $(pwd):/workspace ghcr.io/bootcs-cn/cli check cs50/hello
-#   docker run --rm -v $(pwd):/workspace ghcr.io/bootcs-cn/cli submit cs50/hello
+#   docker run --rm -v $(pwd):/workspace ghcr.io/bootcs-cn/bootcs-cli check cs50/hello
+#   docker run --rm -v $(pwd):/workspace ghcr.io/bootcs-cn/bootcs-cli submit cs50/hello
 #
 # 支持课程:
 #   - CS50 (C, Python)
