@@ -385,11 +385,13 @@ def find_check_dir(slug, language: str = "c", force_update: bool = False):
                 return path
     
     # 2. Try remote download (if slug has course/stage format)
-    if course_slug and "/" in slug:
+    if course_slug:
         try:
             from .api.checks import get_checks_manager
             manager = get_checks_manager()
-            check_path = manager.get_checks(slug, language=language, force_update=force_update)
+            # API expects 2-part slug (course/stage), convert if needed
+            api_slug = f"{course_slug}/{stage_name}"
+            check_path = manager.get_checks(api_slug, language=language, force_update=force_update)
             if check_path.exists():
                 return check_path
         except Exception as e:
