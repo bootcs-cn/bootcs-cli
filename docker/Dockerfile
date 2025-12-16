@@ -68,6 +68,8 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # ============================================
 # 安装 bootcs-cli (从 GitHub 安装)
 # ============================================
+# ARG 用于打破缓存，确保每次构建都拉取最新代码
+ARG CACHEBUST=1
 RUN pip install --no-cache-dir git+https://github.com/bootcs-dev/bootcs-cli.git
 
 # ============================================
