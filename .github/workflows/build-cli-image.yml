@@ -21,6 +21,7 @@ on:
     push:
         branches: [main]
         paths:
+            - "bootcs/**"
             - "docker/**"
             - "pyproject.toml"
             - ".github/workflows/build-cli-image.yml"
