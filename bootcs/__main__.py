@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 import termcolor
@@ -51,6 +52,10 @@ def main():
     submit_parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
     submit_parser.add_argument("-L", "--language", help="Language of submission (auto-detected if not specified)")
     submit_parser.add_argument("--local", metavar="PATH", help="Path to local checks directory (for file list)")
+    submit_parser.add_argument("--async", dest="async_mode", action="store_true",
+                              help="Don't wait for evaluation result (return immediately)")
+    submit_parser.add_argument("--timeout", type=int, default=60,
+                              help="Timeout in seconds to wait for evaluation (default: 60)")
     
     # Auth commands
     subparsers.add_parser("login", help="Log in with GitHub")
@@ -407,6 +412,115 @@ def find_check_dir(slug, language: str = "c", force_update: bool = False):
     return None
 
 
+# Spinner characters for polling animation
+SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+
+
+def wait_for_result(submission_id: str, token: str, timeout: int = 60):
+    """
+    Poll for submission evaluation result.
+    
+    Args:
+        submission_id: The submission ID to poll.
+        token: Authentication token.
+        timeout: Maximum time to wait in seconds.
+    
+    Returns:
+        Submission result dict, or None if timeout.
+    """
+    from .api.client import APIClient, APIError
+    
+    client = APIClient(token=token)
+    start_time = time.time()
+    poll_count = 0
+    
+    while True:
+        elapsed = time.time() - start_time
+        
+        # Timeout check
+        if elapsed > timeout:
+            return None
+        
+        # Show spinner
+        spinner_char = SPINNER[poll_count % len(SPINNER)]
+        elapsed_int = int(elapsed)
+        sys.stdout.write(f"\r⏳ Evaluating... {spinner_char} ({elapsed_int}s)  ")
+        sys.stdout.flush()
+        
+        try:
+            result = client.get(f"/api/submissions/{submission_id}")
+            status = result.get('status')
+            
+            # Terminal states
+            if status in ['SUCCESS', 'FAILURE', 'ERROR', 'TIMEOUT']:
+                sys.stdout.write("\r" + " " * 40 + "\r")  # Clear line
+                sys.stdout.flush()
+                return result
+        except APIError:
+            pass  # Continue polling on error
+        
+        poll_count += 1
+        # First 5 polls: 1s interval (fast feedback)
+        # After that: 2s interval (reduce load)
+        interval = 1 if poll_count <= 5 else 2
+        time.sleep(interval)
+
+
+def display_result(result: dict):
+    """
+    Display evaluation result.
+    
+    Args:
+        result: Submission result dict from API.
+    """
+    status = result.get('status')
+    eval_result = result.get('result', {})
+    test_results = eval_result.get('results', [])
+    passed = sum(1 for r in test_results if r.get('passed'))
+    total = len(test_results)
+    
+    print()
+    if status == 'SUCCESS':
+        termcolor.cprint("🎉 Evaluation Complete!", "green", attrs=["bold"])
+        print()
+        termcolor.cprint(f"   Status:  SUCCESS", "green")
+    elif status == 'FAILURE':
+        termcolor.cprint("❌ Some tests failed", "red", attrs=["bold"])
+        print()
+        termcolor.cprint(f"   Status:  FAILURE", "red")
+    elif status == 'ERROR':
+        termcolor.cprint("⚠️  Evaluation error", "yellow", attrs=["bold"])
+        print()
+        termcolor.cprint(f"   Status:  ERROR", "yellow")
+    elif status == 'TIMEOUT':
+        termcolor.cprint("⏰ Evaluation timeout", "yellow", attrs=["bold"])
+        print()
+        termcolor.cprint(f"   Status:  TIMEOUT", "yellow")
+    
+    if total > 0:
+        color = "green" if passed == total else "red"
+        termcolor.cprint(f"   Passed:  {passed}/{total}", color)
+    
+    # Show individual test results
+    if test_results:
+        print()
+        for r in test_results:
+            name = r.get('name', 'unknown')
+            is_passed = r.get('passed', False)
+            description = r.get('description', '')
+            
+            if is_passed:
+                icon = termcolor.colored('✅', 'green')
+            else:
+                icon = termcolor.colored('❌', 'red')
+            
+            if description:
+                print(f"   {icon} {name} - {description}")
+            else:
+                print(f"   {icon} {name}")
+    print()
+
+
 def run_submit(args):
     """Run the submit command."""
     from .auth import is_logged_in, get_token
@@ -514,14 +628,40 @@ def run_submit(args):
         
         print(f"   Submission ID: {result.submission_id}")
         print(f"   Short Hash:    {result.short_hash}")
-        print(f"   Status:        {result.status}")
         
-        if result.status == "EVALUATING":
+        # If async mode or not evaluating, just show status and return
+        if args.async_mode or result.status != "EVALUATING":
+            print(f"   Status:        {result.status}")
+            if result.status == "EVALUATING":
+                print()
+                termcolor.cprint("💡 Your code is being evaluated. Check results at:", "cyan")
+                print(f"   https://bootcs.dev/submissions/{result.submission_id}")
+            return 0
+        
+        # Wait for evaluation result (polling mode)
+        print()
+        eval_result = wait_for_result(result.submission_id, token, timeout=args.timeout)
+        
+        if eval_result is None:
+            # Timeout
             print()
-            termcolor.cprint("💡 Your code is being evaluated. Check results at:", "cyan")
+            termcolor.cprint(f"⏰ Evaluation taking longer than expected ({args.timeout}s)", "yellow")
+            print()
+            print("   Your submission is still being processed.")
+            termcolor.cprint("   Check results at:", "cyan")
             print(f"   https://bootcs.dev/submissions/{result.submission_id}")
+            print()
+            termcolor.cprint(f"   Or wait longer with: bootcs submit {slug} --timeout {args.timeout * 2}", "white")
+            return 0
         
-        return 0
+        # Display final result
+        display_result(eval_result)
+        
+        # Return exit code based on result
+        if eval_result.get('status') == 'SUCCESS':
+            return 0
+        else:
+            return 1
         
     except APIError as e:
         print()

@@ -95,11 +95,45 @@ bootcs check cs50/hello --log
 bootcs submit cs50/hello
 ```
 
-系统会显示要提交的文件列表，确认后上传。
+系统会显示要提交的文件列表，确认后上传，并**自动等待评测结果**：
+
+```
+📦 Submitting cs50/hello
+
+Files to submit:
+  • hello.c
+
+Submit these files? [Y/n] Y
+Submitting...
+
+✅ Submitted successfully!
+   Submission ID: cmj9tcg3p00kfi7z4ih3l6quz
+   Short Hash:    f3b2fac3
+
+⏳ Evaluating... ⠹ (3s)
+
+🎉 Evaluation Complete!
+
+   Status:  SUCCESS
+   Passed:  4/4
+
+   ✅ file_exists
+   ✅ compiles
+   ✅ emma
+   ✅ rodrigo
+```
+
+### 提交选项
 
 ```bash
 # 跳过确认，直接提交
 bootcs submit cs50/hello -y
+
+# 异步模式：提交后立即返回，不等待结果
+bootcs submit cs50/hello --async
+
+# 自定义超时时间（默认 60 秒）
+bootcs submit cs50/hello --timeout 120
 ```
 
 ## 📋 常用命令速查
