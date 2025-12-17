@@ -51,23 +51,11 @@ class TestDetectLanguage(unittest.TestCase):
         lang = detect_language(self.root)
         self.assertEqual(lang, "python")
 
-    def test_detect_javascript(self):
-        """Detect JavaScript from .js file."""
-        (self.root / "app.js").touch()
+    def test_detect_java(self):
+        """Detect Java from .java file."""
+        (self.root / "Main.java").touch()
         lang = detect_language(self.root)
-        self.assertEqual(lang, "javascript")
-
-    def test_detect_go(self):
-        """Detect Go from .go file."""
-        (self.root / "main.go").touch()
-        lang = detect_language(self.root)
-        self.assertEqual(lang, "go")
-
-    def test_detect_rust(self):
-        """Detect Rust from .rs file."""
-        (self.root / "main.rs").touch()
-        lang = detect_language(self.root)
-        self.assertEqual(lang, "rust")
+        self.assertEqual(lang, "java")
 
     def test_most_common_wins(self):
         """When multiple languages, most common wins."""
@@ -116,8 +104,8 @@ class TestLanguageExtensions(unittest.TestCase):
     """Test language extension mapping completeness."""
 
     def test_all_common_extensions_covered(self):
-        """Common programming extensions are mapped."""
-        expected = ['.c', '.h', '.py', '.js', '.go', '.rs']
+        """MVP language extensions are mapped (c/python/java)."""
+        expected = ['.c', '.h', '.py', '.java']
         for ext in expected:
             self.assertIn(ext, LANGUAGE_EXTENSIONS)
 

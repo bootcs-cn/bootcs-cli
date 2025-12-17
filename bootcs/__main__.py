@@ -85,24 +85,16 @@ def main():
         return 1
 
 
-# Language extension mapping
+# Language extension mapping (MVP: c/python/java)
 LANGUAGE_EXTENSIONS = {
     '.c': 'c',
     '.h': 'c',
     '.py': 'python',
-    '.js': 'javascript',
-    '.mjs': 'javascript',
-    '.ts': 'typescript',
-    '.go': 'go',
-    '.rs': 'rust',
     '.java': 'java',
-    '.cpp': 'cpp',
-    '.cc': 'cpp',
-    '.cxx': 'cpp',
 }
 
-# Supported languages for slug parsing
-SUPPORTED_LANGUAGES = {'c', 'python', 'java', 'cpp', 'go', 'rust', 'javascript', 'typescript'}
+# Supported languages for slug parsing (MVP: c/python/java)
+SUPPORTED_LANGUAGES = {'c', 'python', 'java'}
 
 
 def parse_slug(slug: str):
