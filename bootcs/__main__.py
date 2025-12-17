@@ -189,7 +189,8 @@ def run_check(args):
     
     # Determine check directory
     if args.local:
-        check_dir = Path(args.local).resolve()
+        # Combine local path with slug (e.g., /path/to/checks + cs50/python/hello)
+        check_dir = Path(args.local).resolve() / slug
     else:
         # Try remote download first, then fall back to local search
         check_dir = find_check_dir(slug, language=language, force_update=force_update)
