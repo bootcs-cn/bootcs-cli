@@ -136,9 +136,23 @@ def check(dependency=None, timeout=60, max_log_lines=100):
 
 
 class CheckRunner:
-    def __init__(self, checks_path, included_files):
+    def __init__(self, checks_path, included_files, language=None):
+        """
+        Initialize CheckRunner.
+        
+        Args:
+            checks_path: Path to the checks file to run.
+            included_files: List of files to include in the check.
+            language: Current programming language (e.g., 'c', 'python', 'java').
+                     Defaults to None for backward compatibility.
+        """
         self.checks_path = checks_path
         self.included_files = included_files
+        self.language = language
+        
+        # Set language in internal state for adapter access
+        if language:
+            internal.set_current_language(language)
 
     def run(self, targets=None):
         """
@@ -268,6 +282,7 @@ class run_check:
         "internal.slug",
         "internal.student_dir",
         "internal.run_root_dir",
+        "internal._current_language",  # Phase 0: Pass language to subprocesses
         "sys.excepthook",
     )
 

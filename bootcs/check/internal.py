@@ -35,6 +35,9 @@ check_running = False
 #: The user specified slug used to identifies the set of checks
 slug = None
 
+#: The current programming language being checked
+_current_language = None
+
 #: Config loader for bootcs
 CONFIG_LOADER = lib50.config.Loader("bootcs")
 CONFIG_LOADER.scope("files", "include", "exclude", "require")
@@ -141,6 +144,46 @@ def import_file(name, path):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def get_current_language():
+    """
+    Get the current programming language being checked.
+    
+    Returns:
+        str: Current language (e.g., 'c', 'python', 'java'), or None if not set.
+    """
+    return _current_language
+
+
+def set_current_language(language):
+    """
+    Set the current programming language being checked.
+    
+    Args:
+        language (str): Language identifier (e.g., 'c', 'python', 'java').
+    """
+    global _current_language
+    _current_language = language
+
+
+def get_problem_name():
+    """
+    Extract the problem name from the current slug.
+    
+    For slug format "{courseSlug}/{stageSlug}", returns stageSlug.
+    For example: "cs50/hello" -> "hello"
+    
+    Returns:
+        str: The problem/stage name, or None if slug is not set.
+    """
+    if slug is None:
+        return None
+    
+    parts = slug.split("/")
+    if len(parts) >= 2:
+        return parts[-1]  # Return last part as problem name
+    return slug
 
 
 def _yes_no_prompt(prompt):

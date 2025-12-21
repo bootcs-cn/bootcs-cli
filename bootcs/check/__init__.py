@@ -32,6 +32,27 @@ from . import internal
 from .runner import check
 from pexpect import EOF
 
+# Phase 1: Language adapters
+from .adapters import LanguageAdapter, create_adapter
+
+
+def get_adapter():
+    """
+    Get language adapter for current check context.
+    
+    Automatically retrieves problem name and language from internal state.
+    Convenience function to avoid repetition in check implementations.
+    
+    Returns:
+        LanguageAdapter: Configured adapter for current problem/language
+    """
+    problem = internal.get_problem_name()
+    language = internal.get_current_language()
+    return create_adapter(problem, language)
+
+
 __all__ = ["import_checks", "data", "exists", "hash", "include", "regex",
            "run", "log", "Failure", "Mismatch", "Missing", "check", "EOF",
-           "c", "java", "internal", "hidden"]
+           "c", "java", "internal", "hidden",
+           # Phase 1: Adapters
+           "LanguageAdapter", "create_adapter", "get_adapter"]
