@@ -65,7 +65,7 @@ class TestHelloIntegration(unittest.TestCase):
             sys.executable, "-m", "bootcs",
             "check", "cs50/hello",
             "-L", language,
-            "--local", str(self.checks_dir.parent.parent)
+            "-d", str(self.checks_dir.parent.parent)
         ]
         
         env = os.environ.copy()

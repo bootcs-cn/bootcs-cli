@@ -43,7 +43,8 @@ def main():
                               help="Language for checks (auto-detected from files if not specified)")
     check_parser.add_argument("-u", "--update", action="store_true",
                               help="Force update checks from remote")
-    check_parser.add_argument("--local", metavar="PATH", help="Path to local checks directory")
+    check_parser.add_argument("-d", "--dev", metavar="PATH",
+                              help="Development mode: PATH is interpreted as a literal path to checks directory")
     
     # Submit command
     submit_parser = subparsers.add_parser("submit", help="Submit your code")
@@ -51,7 +52,8 @@ def main():
     submit_parser.add_argument("-m", "--message", help="Commit message")
     submit_parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
     submit_parser.add_argument("-L", "--language", help="Language of submission (auto-detected if not specified)")
-    submit_parser.add_argument("--local", metavar="PATH", help="Path to local checks directory (for file list)")
+    submit_parser.add_argument("-d", "--dev", metavar="PATH",
+                              help="Development mode: PATH is literal path to checks directory (for file list)")
     submit_parser.add_argument("--async", dest="async_mode", action="store_true",
                               help="Don't wait for evaluation result (return immediately)")
     submit_parser.add_argument("--timeout", type=int, default=60,
@@ -181,16 +183,16 @@ def run_check(args):
     language = detect_language(directory=Path.cwd(), explicit=explicit_lang)
     
     # Determine check directory
-    if args.local:
-        # Combine local path with slug (e.g., /path/to/checks + cs50/hello)
-        check_dir = Path(args.local).resolve() / slug
+    if args.dev:
+        # Development mode: combine dev path with slug (e.g., /path/to/checks + cs50/hello)
+        check_dir = Path(args.dev).resolve() / slug
     else:
         # Try remote download first, then fall back to local search
         check_dir = find_check_dir(slug, language=language, force_update=force_update)
     
     if not check_dir or not check_dir.exists():
         termcolor.cprint(f"Error: Could not find checks for '{slug}'", "red", file=sys.stderr)
-        termcolor.cprint("Use --local to specify a local checks directory.", "yellow", file=sys.stderr)
+        termcolor.cprint("Use --dev to specify a checks directory for development.", "yellow", file=sys.stderr)
         return 1
     
     # Set internal state
@@ -526,14 +528,14 @@ def run_submit(args):
     token = get_token()
     
     # Determine check directory for file list
-    if args.local:
-        check_dir = Path(args.local).resolve()
+    if args.dev:
+        check_dir = Path(args.dev).resolve()
     else:
         check_dir = find_check_dir(slug, language=language)
     
     if not check_dir or not check_dir.exists():
         termcolor.cprint(f"Error: Could not find config for '{slug}'", "red", file=sys.stderr)
-        termcolor.cprint("Use --local to specify the checks directory.", "yellow", file=sys.stderr)
+        termcolor.cprint("Use --dev to specify the checks directory for development.", "yellow", file=sys.stderr)
         return 1
     
     # Load config to get file list
