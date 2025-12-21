@@ -7,7 +7,9 @@ Usage:
 """
 
 import argparse
+import enum
 import json
+import logging
 import os
 import sys
 import time
@@ -19,6 +21,53 @@ from . import __version__
 from .check import internal
 from .check.runner import CheckRunner
 from . import lib50
+
+
+LOGGER = logging.getLogger(__name__)
+
+
+class LogLevel(enum.IntEnum):
+    """Log levels aligned with check50."""
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARNING = logging.WARNING
+    ERROR = logging.ERROR
+
+
+class ColoredFormatter(logging.Formatter):
+    """Colored log formatter aligned with check50."""
+    COLORS = {
+        "ERROR": "red",
+        "WARNING": "yellow",
+        "DEBUG": "cyan",
+        "INFO": "magenta",
+    }
+
+    def __init__(self, fmt, use_color=True):
+        super().__init__(fmt=fmt)
+        self.use_color = use_color
+
+    def format(self, record):
+        msg = super().format(record)
+        return msg if not self.use_color else termcolor.colored(
+            msg, getattr(record, "color", self.COLORS.get(record.levelname))
+        )
+
+
+def setup_logging(level):
+    """
+    Setup logging system aligned with check50.
+    
+    Args:
+        level: Log level string (debug, info, warning, error)
+    """
+    for logger in (logging.getLogger("lib50"), LOGGER):
+        logger.setLevel(level.upper())
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setFormatter(
+            ColoredFormatter("(%(levelname)s) %(message)s", use_color=sys.stderr.isatty())
+        )
+        logger.addHandler(handler)
 
 
 def main():
@@ -36,7 +85,14 @@ def main():
     check_parser.add_argument("slug", help="The check slug (e.g., cs50/mario-less)")
     check_parser.add_argument("-o", "--output", choices=["ansi", "json"], default="ansi",
                               help="Output format (default: ansi)")
-    check_parser.add_argument("--log", action="store_true", help="Show detailed log")
+    check_parser.add_argument("--log", action="store_true", help="Show detailed log (deprecated, use --log-level info)")
+    check_parser.add_argument("--log-level",
+                              action="store",
+                              choices=[level.name.lower() for level in LogLevel],
+                              type=str.lower,
+                              help="warning: displays usage warnings.\n"
+                                   "info: adds all commands run and log messages.\n"
+                                   "debug: adds output of all commands run.")
     check_parser.add_argument("--target", action="append", metavar="check",
                               help="Run only the specified check(s)")
     check_parser.add_argument("-L", "--language",
@@ -175,6 +231,21 @@ def run_check(args):
     slug = args.slug
     force_update = getattr(args, 'update', False)
     
+    # Dev mode implies log level "info" if not overwritten (like check50)
+    if args.dev:
+        if not args.log_level:
+            args.log_level = "info"
+    
+    # Setup logging
+    if not args.log_level:
+        args.log_level = "warning"
+    setup_logging(args.log_level)
+    
+    # Legacy --log flag support
+    if args.log and not args.log_level:
+        args.log_level = "info"
+        setup_logging(args.log_level)
+    
     # Parse slug (MVP: only 2-part format)
     course_slug, stage_slug = parse_slug(slug)
     
@@ -195,6 +266,12 @@ def run_check(args):
         termcolor.cprint("Use --dev to specify a checks directory for development.", "yellow", file=sys.stderr)
         return 1
     
+    # Debug info in dev mode
+    if args.dev:
+        LOGGER.info(f"Dev mode enabled")
+        LOGGER.info(f"Check directory: {check_dir}")
+        LOGGER.info(f"Language: {language}")
+    
     # Set internal state
     internal.check_dir = check_dir
     internal.slug = slug
@@ -210,6 +287,11 @@ def run_check(args):
     if not checks_file.exists():
         termcolor.cprint(f"Error: Checks file '{config['checks']}' not found in {check_dir}", "red", file=sys.stderr)
         return 1
+    
+    # Dev mode: show config details
+    if args.dev:
+        LOGGER.info(f"Config file: {config.get('checks', '__init__.py')}")
+        LOGGER.info(f"Files pattern: {config.get('files', [])}")
     
     # Get list of files to include
     cwd = Path.cwd()
