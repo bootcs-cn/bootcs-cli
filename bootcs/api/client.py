@@ -11,7 +11,7 @@ import requests
 
 
 # Default API base URL
-DEFAULT_API_BASE = "https://api.bootcs.dev"
+DEFAULT_API_BASE = "https://api.bootcs.cn"
 
 
 def get_api_base() -> str:

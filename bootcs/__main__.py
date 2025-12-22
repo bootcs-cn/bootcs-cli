@@ -710,7 +710,7 @@ def run_submit(args):
             if result.status == "EVALUATING":
                 print()
                 termcolor.cprint("💡 Your code is being evaluated. Check results at:", "cyan")
-                print(f"   https://bootcs.dev/submissions/{result.submission_id}")
+                print(f"   https://bootcs.cn/submissions/{result.submission_id}")
             return 0
         
         # Wait for evaluation result (polling mode)
@@ -724,7 +724,7 @@ def run_submit(args):
             print()
             print("   Your submission is still being processed.")
             termcolor.cprint("   Check results at:", "cyan")
-            print(f"   https://bootcs.dev/submissions/{result.submission_id}")
+            print(f"   https://bootcs.cn/submissions/{result.submission_id}")
             print()
             termcolor.cprint(f"   Or wait longer with: bootcs submit {slug} --timeout {args.timeout * 2}", "white")
             return 0
