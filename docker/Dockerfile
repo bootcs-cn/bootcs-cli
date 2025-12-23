@@ -70,7 +70,8 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # ============================================
 # ARG 用于打破缓存，确保每次构建都拉取最新代码
 ARG CACHEBUST=1
-RUN pip install --no-cache-dir git+https://github.com/bootcs-dev/bootcs-cli.git
+RUN pip install --no-cache-dir git+https://github.com/bootcs-dev/bootcs-cli.git \
+    && ln -s /usr/local/bin/bootcs-cli /usr/local/bin/bootcs
 
 # ============================================
 # 环境配置
