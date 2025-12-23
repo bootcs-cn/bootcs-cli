@@ -4,6 +4,11 @@
 
 ✨ **支持多语言**: C, Java, Python, SQL - 同一个问题，自由选择你喜欢的语言！
 
+## 💡 两种安装方式
+
+- **bootcs**（推荐）：容器版，无需配置环境，开箱即用
+- **bootcs-cli**：本地版，适合开发和调试
+
 ## 🚀 30 秒上手
 
 ```bash
@@ -23,7 +28,7 @@ bootcs submit cs50/hello
 
 ## 📦 安装
 
-### 推荐方式：一键安装
+### 推荐方式：容器版 bootcs（一键安装）
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/bootcs-dev/bootcs-cli/main/scripts/install-docker.sh | bash
@@ -35,6 +40,20 @@ curl -fsSL https://raw.githubusercontent.com/bootcs-dev/bootcs-cli/main/scripts/
 
 ```bash
 bootcs --version
+# 输出: bootcs 2.0.0
+```
+
+### 开发者方式：本地版 bootcs-cli
+
+```bash
+cd bootcs-cli
+pip install -e .
+```
+
+验证：
+
+```bash
+bootcs-cli --version
 # 输出: bootcs 2.0.0
 ```
 
