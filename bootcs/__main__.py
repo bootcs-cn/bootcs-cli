@@ -527,11 +527,6 @@ def wait_for_result(submission_id: str, token: str, timeout: int = 60):
         
         try:
             result = client.get(f"/api/submissions/{submission_id}")
-            # DEBUG: Print result type and content
-            import json
-            print(f"\nDEBUG result type: {type(result)}")
-            print(f"DEBUG result: {json.dumps(result, indent=2, default=str)[:500]}")
-            
             status = result.get('status')
             
             # Terminal states
