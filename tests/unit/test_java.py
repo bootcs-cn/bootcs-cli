@@ -35,13 +35,15 @@ class TestJavaCompile:
 
         # Create a simple Java file
         with open("Hello.java", "w") as f:
-            f.write("""
+            f.write(
+                """
 public class Hello {
     public static void main(String[] args) {
         System.out.println("hello, world");
     }
 }
-""")
+"""
+            )
 
         # Should compile without error
         java.compile("Hello.java")
@@ -56,13 +58,15 @@ public class Hello {
 
         # Create a Java file with syntax error
         with open("Bad.java", "w") as f:
-            f.write("""
+            f.write(
+                """
 public class Bad {
     public static void main(String[] args) {
         System.out.println("missing semicolon")
     }
 }
-""")
+"""
+            )
 
         # Should raise Failure
         with pytest.raises(Failure):
@@ -88,7 +92,8 @@ class TestJavaRun:
 
         # Create and compile a test Java file
         with open("Hello.java", "w") as f:
-            f.write("""
+            f.write(
+                """
 import java.util.Scanner;
 
 public class Hello {
@@ -104,7 +109,8 @@ public class Hello {
         }
     }
 }
-""")
+"""
+            )
         os.system("javac Hello.java")
 
     def teardown_method(self):
