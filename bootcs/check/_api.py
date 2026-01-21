@@ -63,10 +63,10 @@ def _stream_event(event_type: str, **kwargs):
         for key, value in kwargs.items():
             # Escape special characters in values
             if isinstance(value, str):
-                value = value.replace('"', '\\"').replace('\n', '\\n')
+                value = value.replace('"', '\\"').replace("\n", "\\n")
                 parts.append(f'{key}="{value}"')
             else:
-                parts.append(f'{key}={value}')
+                parts.append(f"{key}={value}")
         print(" ".join(parts), file=sys.stderr, flush=True)
 
 

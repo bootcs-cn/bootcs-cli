@@ -120,6 +120,7 @@ class TestFormatStreamLine(unittest.TestCase):
             line = _format_stream_line("test", level="info")
             # Should have time format like [HH:MM:SS]
             import re
+
             self.assertTrue(re.search(r"\[\d{2}:\d{2}:\d{2}\]", line))
 
 
