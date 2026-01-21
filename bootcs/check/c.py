@@ -106,7 +106,7 @@ def compile(*files, exe_name=None, cc=CC, max_log_lines=50, **cflags):
 
     # Log compilation start
     log(_("compiling {} with {}...").format(files_str, cc))
-    
+
     process = run(f"{cc} {files_str}{out_flag}{flags}{lib_flags}{static_lib_flags}")
 
     # Strip out ANSI codes
@@ -123,7 +123,7 @@ def compile(*files, exe_name=None, cc=CC, max_log_lines=50, **cflags):
             log(line, level="error")
 
         raise Failure("code failed to compile")
-    
+
     # Log compilation success
     log(_("compilation successful"))
 

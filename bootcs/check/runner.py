@@ -26,7 +26,7 @@ import attr
 
 from .. import lib50
 from . import _exceptions, internal
-from ._api import Failure, _data, _log, _stream_enabled, _stream_event
+from ._api import Failure, _data, _log, _stream_event
 
 
 def _(s):
@@ -103,14 +103,14 @@ def check(dependency=None, timeout=60, max_log_lines=100):
         def wrapper(run_root_dir, dependency_state):
             # Get check description for events
             description = check.__doc__ if check.__doc__ else check.__name__.replace("_", " ")
-            
+
             # Emit check_started event
             _stream_event(
                 "check_started",
                 name=check.__name__,
                 description=description,
             )
-            
+
             start_time = time.time()
             result = CheckResult.from_check(check)
             state = None
@@ -143,7 +143,7 @@ def check(dependency=None, timeout=60, max_log_lines=100):
             finally:
                 result.log = _log if len(_log) <= max_log_lines else ["..."] + _log[-max_log_lines:]
                 result.data = _data
-                
+
                 # Calculate duration and determine status
                 duration_ms = int((time.time() - start_time) * 1000)
                 if result.passed is True:
@@ -152,7 +152,7 @@ def check(dependency=None, timeout=60, max_log_lines=100):
                     status = "failed"
                 else:
                     status = "skipped"
-                
+
                 # Emit check_completed event
                 _stream_event(
                     "check_completed",
@@ -160,7 +160,7 @@ def check(dependency=None, timeout=60, max_log_lines=100):
                     status=status,
                     duration_ms=duration_ms,
                 )
-                
+
                 return result, state
 
         return wrapper

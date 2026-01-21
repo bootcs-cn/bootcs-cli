@@ -102,7 +102,7 @@ def compile(*files, javac=JAVAC, classpath=None, **options):
                 log(f"  {line}", level="error")
 
         raise Failure(_("code failed to compile. See log for details."))
-    
+
     # Log compilation success
     log(_("compilation successful"))
 

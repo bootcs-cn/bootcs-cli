@@ -55,7 +55,7 @@ def _stream_log(line: str, level: str = "info"):
 def _stream_event(event_type: str, **kwargs):
     """
     Write a structured event to stderr for worker parsing.
-    
+
     Event format: [EVENT] type key1=value1 key2=value2
     """
     if _stream_enabled:
@@ -84,7 +84,7 @@ def log(line, level="info"):
     :type level: str
 
     The check log is student-visible via the ``--log`` flag to ``bootcs check``.
-    
+
     When BOOTCS_STREAM_LOGS=1 environment variable is set, logs are also
     written to stderr in real-time for the worker to capture.
     """

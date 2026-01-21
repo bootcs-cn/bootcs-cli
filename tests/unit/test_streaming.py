@@ -26,12 +26,12 @@ class TestStreamingLogBasics(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             # Remove the var if it exists
             os.environ.pop("BOOTCS_STREAM_LOGS", None)
-            
+
             # Re-import to pick up env var
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
             from bootcs.check._api import _stream_enabled
-            
+
             self.assertFalse(_stream_enabled)
 
     def test_stream_enabled_with_env_var(self):
@@ -41,7 +41,7 @@ class TestStreamingLogBasics(unittest.TestCase):
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
             from bootcs.check._api import _stream_enabled
-            
+
             self.assertTrue(_stream_enabled)
 
 
@@ -51,30 +51,30 @@ class TestLogFunction(unittest.TestCase):
     def test_log_appends_to_internal_log(self):
         """log() should append to _log list regardless of streaming."""
         from bootcs.check._api import _log, log
-        
+
         _log.clear()
         log("test message")
-        
+
         self.assertIn("test message", _log)
 
     def test_log_escapes_newlines(self):
         """log() should escape newlines in messages."""
         from bootcs.check._api import _log, log
-        
+
         _log.clear()
         log("line1\nline2")
-        
+
         self.assertIn("line1\\nline2", _log)
 
     def test_log_with_level_parameter(self):
         """log() should accept level parameter without error."""
         from bootcs.check._api import _log, log
-        
+
         _log.clear()
         log("info message", level="info")
         log("warning message", level="warn")
         log("error message", level="error")
-        
+
         self.assertEqual(len(_log), 3)
 
     def test_log_streams_to_stderr_when_enabled(self):
@@ -83,15 +83,15 @@ class TestLogFunction(unittest.TestCase):
             # Re-import with streaming enabled
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
-            
+
             from bootcs.check._api import _log, log
-            
+
             # Capture stderr
             captured = io.StringIO()
             with patch("sys.stderr", captured):
                 _log.clear()
                 log("streamed message")
-            
+
             output = captured.getvalue()
             self.assertIn("streamed message", output)
             self.assertIn("[INFO ]", output.upper())
@@ -103,10 +103,10 @@ class TestFormatStreamLine(unittest.TestCase):
     def test_format_includes_level(self):
         """Formatted line should include log level."""
         from bootcs.check._api import _format_stream_line
-        
+
         line = _format_stream_line("test", level="info")
         self.assertIn("INFO", line.upper())
-        
+
         line = _format_stream_line("test", level="error")
         self.assertIn("ERROR", line.upper())
 
@@ -116,7 +116,7 @@ class TestFormatStreamLine(unittest.TestCase):
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
             from bootcs.check._api import _format_stream_line
-            
+
             line = _format_stream_line("test", level="info")
             # Should have time format like [HH:MM:SS]
             import re
@@ -131,13 +131,13 @@ class TestStreamEvent(unittest.TestCase):
         with patch.dict(os.environ, {"BOOTCS_STREAM_LOGS": "1"}):
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
-            
+
             from bootcs.check._api import _stream_event
-            
+
             captured = io.StringIO()
             with patch("sys.stderr", captured):
                 _stream_event("check_started", name="exists", description="file exists")
-            
+
             output = captured.getvalue()
             self.assertIn("[EVENT]", output)
             self.assertIn("check_started", output)
@@ -148,13 +148,13 @@ class TestStreamEvent(unittest.TestCase):
         with patch.dict(os.environ, {"BOOTCS_STREAM_LOGS": "1"}):
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
-            
+
             from bootcs.check._api import _stream_event
-            
+
             captured = io.StringIO()
             with patch("sys.stderr", captured):
                 _stream_event("test", value='hello "world"\ntest')
-            
+
             output = captured.getvalue()
             self.assertIn('\\"', output)  # Escaped quote
             self.assertIn("\\n", output)  # Escaped newline
@@ -164,13 +164,13 @@ class TestStreamEvent(unittest.TestCase):
         with patch.dict(os.environ, {"BOOTCS_STREAM_LOGS": "1"}):
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
-            
+
             from bootcs.check._api import _stream_event
-            
+
             captured = io.StringIO()
             with patch("sys.stderr", captured):
                 _stream_event("check_completed", name="test", duration_ms=123)
-            
+
             output = captured.getvalue()
             self.assertIn("duration_ms=123", output)
 
@@ -182,17 +182,17 @@ class TestStreamingDisabled(unittest.TestCase):
         """log() should work normally when streaming is disabled."""
         with patch.dict(os.environ, {}, clear=True):
             os.environ.pop("BOOTCS_STREAM_LOGS", None)
-            
+
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
-            
+
             from bootcs.check._api import _log, log
-            
+
             captured = io.StringIO()
             with patch("sys.stderr", captured):
                 _log.clear()
                 log("normal message")
-            
+
             # Should not write to stderr
             self.assertEqual(captured.getvalue(), "")
             # But should still append to log
@@ -202,16 +202,16 @@ class TestStreamingDisabled(unittest.TestCase):
         """Events should not output when streaming is disabled."""
         with patch.dict(os.environ, {}, clear=True):
             os.environ.pop("BOOTCS_STREAM_LOGS", None)
-            
+
             if "bootcs.check._api" in sys.modules:
                 del sys.modules["bootcs.check._api"]
-            
+
             from bootcs.check._api import _stream_event
-            
+
             captured = io.StringIO()
             with patch("sys.stderr", captured):
                 _stream_event("check_started", name="test")
-            
+
             self.assertEqual(captured.getvalue(), "")
 
 
