@@ -160,8 +160,18 @@ done
 # -v $(pwd):/workspace  - 挂载当前目录为工作目录
 # -v ~/.bootcs:/root/.bootcs - 持久化凭证和缓存
 # -v LOCAL_PATH:LOCAL_PATH - 挂载本地 checks 目录（如果指定）
+# -e BOOTCS_STREAM_LOGS - 传递流式日志环境变量
 # -it - 交互模式 (login 需要)
 # --rm - 运行后删除容器
+
+# 构建环境变量参数
+ENV_ARGS=""
+if [ -n "${BOOTCS_STREAM_LOGS}" ]; then
+    ENV_ARGS="${ENV_ARGS} -e BOOTCS_STREAM_LOGS=${BOOTCS_STREAM_LOGS}"
+fi
+if [ -n "${BOOTCS_STREAM_TIMESTAMPS}" ]; then
+    ENV_ARGS="${ENV_ARGS} -e BOOTCS_STREAM_TIMESTAMPS=${BOOTCS_STREAM_TIMESTAMPS}"
+fi
 
 # 检查是否需要交互模式 (login 命令)
 if [[ "$1" == "login" ]]; then
@@ -169,12 +179,14 @@ if [[ "$1" == "login" ]]; then
         -v "$(pwd)":/workspace \
         -v "${CONFIG_DIR}":/root/.bootcs \
         ${LOCAL_MOUNT} \
+        ${ENV_ARGS} \
         "${IMAGE}" "$@"
 else
     docker run --rm \
         -v "$(pwd)":/workspace \
         -v "${CONFIG_DIR}":/root/.bootcs \
         ${LOCAL_MOUNT} \
+        ${ENV_ARGS} \
         "${IMAGE}" "$@"
 fi
 '
